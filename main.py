@@ -1,5 +1,5 @@
 import os
-from fastapi import FastAPI
+from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
@@ -19,6 +19,24 @@ def read_root():
 @app.get("/api/hello")
 def hello():
     return {"message": "Hello from the backend API!"}
+
+@app.get("/api/search")
+def search(
+    location: str = Query("", description="Desired destination or area"),
+    dates: str = Query("", description="Date range string"),
+    guests: int = Query(1, ge=1, description="Number of guests"),
+):
+    # Simple mocked search response for demo purposes
+    base = 37
+    score = len(location.strip()) * 3 + len(dates.strip()) * 2 + guests
+    count = max(3, min(200, base + score // 2))
+    return {
+        "count": count,
+        "location": location or "anywhere",
+        "dates": dates or "flexible",
+        "guests": guests,
+        "results": [],
+    }
 
 @app.get("/test")
 def test_database():
@@ -58,7 +76,6 @@ def test_database():
         response["database"] = f"❌ Error: {str(e)[:50]}"
     
     # Check environment variables
-    import os
     response["database_url"] = "✅ Set" if os.getenv("DATABASE_URL") else "❌ Not Set"
     response["database_name"] = "✅ Set" if os.getenv("DATABASE_NAME") else "❌ Not Set"
     
